@@ -22,7 +22,7 @@ pipeline{
         }
         stage("Build"){
             steps{
-                sh 'mvn clean install sonar:sonar'
+                sh 'mvn clean install'
             }
         }
         stage("Docker Build"){
