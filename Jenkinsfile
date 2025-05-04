@@ -37,7 +37,7 @@ pipeline{
         stage("Deployment"){
             steps{
                 sh 'argocd login argocd.singhritesh85.com --username admin --password Admin@123 --skip-test-tls  --grpc-web'
-                sh 'argocd app create bankapp --project default --repo https://github.com/singhritesh85/helm-repo-for-ArgoCD.git --path ./folo --dest-namespace bankapp --dest-server https://aks-cluster-dns-47fhffkr.hcp.eastus.azmk8s.io:443 --helm-set service.port=80 --helm-set image.repository=${REPO_NAME} --helm-set image.tag=${TAG_NAME} --helm-set replicaCount=1 --upsert'
+                sh 'argocd app create bankapp --project default --repo https://github.com/singhritesh85/helm-repo-for-ArgoCD.git --path ./folo --dest-namespace bankapp --dest-server https://aks-cluster-dns-47fhffkr.hcp.eastus.azmk8s.io:443 --helm-set service.port=80 --helm-set image.repository=${REPO_NAME} --helm-set image.tag=${TAG_NAME} --helm-set replicaCount=1 --helm-set imagePullSecrets[0].name=regcred --upsert'
                 sh 'argocd app sync bankapp'
             }
         }
