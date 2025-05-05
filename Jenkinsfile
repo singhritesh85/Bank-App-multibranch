@@ -20,9 +20,27 @@ pipeline{
                 checkout scmGit(branches: [[name: 'stage']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-cred', url: 'https://github.com/singhritesh85/Bank-App-multibranch.git']])
             }
         }
-        stage("Build"){
+        stage("SonarQube-Analysis"){
             steps{
-                sh 'mvn clean install'
+                withSonarQubeEnv('SonarQube-Server') {
+                    sh 'mvn clean install sonar:sonar'
+                }
+            }
+        }
+        //stage("Quality Gate") {
+        //    steps {
+        //        timeout(time: 1, unit: 'HOURS') {
+        //            waitForQualityGate abortPipeline: true
+        //      }
+        //    }
+        //}
+        stage("Nexus-Artifact Upload"){
+            steps{
+                script{
+                    def mavenPom = readMavenPom file: 'pom.xml'
+                    def nexusRepoName = mavenPom.version.endsWith("SNAPSHOT") ? "maven-snapshot-stage" : "maven-release-stage"
+                    nexusArtifactUploader artifacts: [[artifactId: 'bankapp', classifier: '', file: "target/bankapp-${mavenPom.version}.jar", type: 'jar']], credentialsId: 'nexus', groupId: 'com.example', nexusUrl: 'nexus.singhritesh85.com', nexusVersion: 'nexus3', protocol: 'https', repository: "${nexusRepoName}", version: "${mavenPom.version}"
+                }    
             }
         }
         stage("Docker Build"){
@@ -30,6 +48,8 @@ pipeline{
                 sh 'docker system prune -f --all'
                 sh 'docker build -t myimage:1.01 -f Dockerfile-Project-1 .'
                 sh 'docker tag myimage:1.01 ${REPO_NAME}:${TAG_NAME}'
+                sh 'trivy image --exit-code 0 --severity MEDIUM,HIGH ${REPO_NAME}:${TAG_NAME}'
+                //sh 'trivy image  --exit-code 1 --severity CRITICAL ${REPO_NAME}:${TAG_NAME}'
                 sh 'aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 027330342406.dkr.ecr.us-east-2.amazonaws.com'
                 sh 'docker push ${REPO_NAME}:${TAG_NAME}'
             }
