@@ -1,0 +1,33 @@
+pipeline{
+    agent{
+         node{
+             label "Slave-1"
+             customWorkspace "/home/jenkins/mysql"
+         }
+    }
+    environment{
+        JAVA_HOME="/usr/lib/jvm/java-17-amazon-corretto.x86_64"
+        PATH="$PATH:$JAVA_HOME/bin:/opt/apache-maven/bin:/opt/node-v16.0.0/bin:/usr/local/bin"
+    }
+    stages{
+        stage("MySQL-Deployment"){
+            steps{
+                //MySQL
+                sh 'argocd login argocd.singhritesh85.com --username admin --password Admin@123 --skip-test-tls  --grpc-web'
+                sh 'argocd app create mysql --project default --repo https://github.com/singhritesh85/helm-repo-for-bitnami.git --path ./bitnami/mysql --dest-namespace mysql --sync-option CreateNamespace=true --dest-server https://kubernetes.default.svc --helm-set secondary.replicaCount=1 --helm-set primary.persistence.enabled=true --helm-set primary.persistence.size=1Gi --helm-set architecture=replication --helm-set secondary.persistence.enabled=true --helm-set secondary.persistence.size=1Gi --helm-set primary.service.type=ClusterIP --helm-set auth.rootPassword=Dexter@123 --helm-set auth.database=bankappdb --upsert'
+                sh 'argocd app sync mysql'
+            }
+        }
+    }
+    post {
+        always {
+            mail bcc: '', body: "A Jenkins Job with Job Name ${env.JOB_NAME} has been executed", cc: '', from: '', replyTo: '', subject: "Jenkins Job ${env.JOB_NAME} has been executed", to: 'abc@gmail.com'
+        }
+        success {
+            mail bcc: '', body: "A Jenkins Job with Job Name ${env.JOB_NAME} and Build Number=${env.BUILD_NUMBER} has been executed Successfully, Please Open the URL ${env.BUILD_URL} and click on Console Output to see the Log. The Result of execution is ${currentBuild.currentResult}", cc: '', from: '', replyTo: '', subject: "Jenkins Job ${env.JOB_NAME} has been Sucessfully Executed", to: 'abc@gmail.com'
+        }
+        failure {
+            mail bcc: '', body: "A Jenkins Job with Job Name ${env.JOB_NAME} and Build Number=${env.BUILD_NUMBER} has been Failed, Please Open the URL ${env.BUILD_URL} and click on Console Output to see the Log. The Result of execution is ${currentBuild.currentResult}", cc: '', from: '', replyTo: '', subject: "Jenkins Job ${env.JOB_NAME} has been Failed", to: 'abc@gmail.com'
+        }
+    }
+}
