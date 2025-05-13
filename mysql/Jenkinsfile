@@ -8,6 +8,8 @@ pipeline{
     environment{
         JAVA_HOME="/usr/lib/jvm/java-17-amazon-corretto.x86_64"
         PATH="$PATH:$JAVA_HOME/bin:/opt/apache-maven/bin:/opt/node-v16.0.0/bin:/usr/local/bin"
+        MYSQL_DATABASE=credentials('mysql_database')
+        MYSQL_ROOT_PASSWORD=credentials('mysql_root_password')
     }
     stages{
         stage("MySQL-Deployment"){
