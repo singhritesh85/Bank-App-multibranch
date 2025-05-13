@@ -10,6 +10,7 @@ pipeline{
         PATH="$PATH:$JAVA_HOME/bin:/opt/apache-maven/bin:/opt/node-v16.0.0/bin:/usr/local/bin"
         MYSQL_DATABASE=credentials('mysql_database')
         MYSQL_ROOT_PASSWORD=credentials('mysql_root_password')
+        ARGOCD_PASSWORD=credentials('ARGOCD_PASSWORD')
     }
     stages{
         stage("MySQL-Deployment"){
