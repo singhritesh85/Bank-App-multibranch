@@ -8,6 +8,7 @@ pipeline{
     environment{
         JAVA_HOME="/usr/lib/jvm/java-17-amazon-corretto.x86_64"
         PATH="$PATH:$JAVA_HOME/bin:/opt/apache-maven/bin:/opt/node-v16.0.0/bin:/usr/local/bin"
+        ARGOCD_PASSWORD=credentials('ARGOCD_PASSWORD')
     }
     parameters { 
         string(name: 'REPO_NAME', defaultValue: '', description: 'Provide the ECR Repository Name for Application Image')
