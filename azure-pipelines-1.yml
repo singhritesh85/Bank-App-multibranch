@@ -1,0 +1,42 @@
+trigger:
+- none
+
+pool: 
+  name: demo
+  demands:
+  - agent.name -equals demo
+
+stages:
+- stage: MySQLDeployment
+  displayName: MySQLDeployment
+  jobs:    
+  - job: HelmRepoAdd
+    displayName: HelmRepoAdd
+    steps:
+    - task: CmdLine@2
+      inputs:
+        script: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+  - deployment: MySQLDeployment
+    displayName: MySQLDeployment
+    environment: "dev"
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: none
+          - task: HelmDeploy@1
+            inputs:
+              connectionType: 'Azure Resource Manager'
+              azureSubscription: 'Azure DevOps Service Connection'
+              azureResourceGroup: 'bankapp-rg'
+              kubernetesCluster: 'bankapp-cluster'
+              namespace: 'mysql'
+              command: 'upgrade'
+              chartType: 'Name'
+              chartName: 'bitnami/mysql'
+              chartVersion: '11.0.0'
+              releaseName: 'mysql'
+              overrideValues: 'secondary.replicaCount=1,primary.persistence.enabled=true,primary.persistence.size=1Gi,architecture=replication,secondary.persistence.enabled=true,secondary.persistence.size=1Gi,global.storageClass=managed-csi,primary.service.type=ClusterIP,auth.rootPassword=$MYSQL_ROOT_PASSWORD,auth.database=$MYSQL_DATABASE'
+          
