@@ -38,7 +38,7 @@ stages:
       inputs:
         script: |
           docker system prune -f --all
-          docker build -t blogappcontainer24registry.azurecr.io/samplewebapp:$(Build.BuildId) .
+          docker build -t blogappcontainer24registry.azurecr.io/samplewebapp:$(Build.BuildId) -f Dockerfile-Project-1 .
     - task: Docker@2
       inputs:
         containerRegistry: 'Docker-Registry'
