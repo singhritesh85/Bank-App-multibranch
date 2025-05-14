@@ -7,17 +7,21 @@ pool:
   - agent.name -equals demo
 
 stages:
-- stage: MySQLDeployment
-  displayName: MySQLDeployment
+- stage: BitnamiHelmRepoAdd
+  displayName: BitnamiHelmRepoAdd
   jobs:    
-  - job: HelmRepoAdd
-    displayName: HelmRepoAdd
+  - job: BitnamiHelmRepoAdd
+    displayName: BitnamiHelmRepoAdd
     steps:
     - task: CmdLine@2
       inputs:
         script: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
+- stage: MySQLDeployment
+  displayName: MySQLDeployment
+  dependsOn: BitnamiHelmRepoAdd
+  jobs:
   - deployment: MySQLDeployment
     displayName: MySQLDeployment
     environment: "dev"
