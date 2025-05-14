@@ -44,7 +44,7 @@ stages:
         containerRegistry: 'Docker-Registry'
         repository: 'samplewebapp'
         command: 'buildAndPush'
-        Dockerfile: '**/Dockerfile'
+        Dockerfile: '**/Dockerfile-Project-1'
 - stage: KubernetesDeployment
   displayName: KubernetesDeployment
   dependsOn: DockerImageBuild
