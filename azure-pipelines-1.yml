@@ -38,6 +38,6 @@ stages:
               chartName: 'bitnami/mysql'
               chartVersion: '11.0.0'
               releaseName: 'mysql'
-              overrideValues: 'secondary.replicaCount=1,primary.persistence.enabled=true,primary.persistence.size=1Gi,architecture=replication,secondary.persistence.enabled=true,secondary.persistence.size=1Gi,global.storageClass=managed-csi,primary.service.type=ClusterIP,auth.rootPassword=$MYSQL_ROOT_PASSWORD,auth.database=$MYSQL_DATABASE'
+              overrideValues: 'secondary.replicaCount=1,primary.persistence.enabled=true,primary.persistence.size=1Gi,architecture=replication,secondary.persistence.enabled=true,secondary.persistence.size=1Gi,global.storageClass=managed-csi,primary.service.type=ClusterIP,auth.rootPassword=$(MYSQL_ROOT_PASSWORD),auth.database=$(MYSQL_DATABASE)'
               arguments: '--create-namespace'
           
