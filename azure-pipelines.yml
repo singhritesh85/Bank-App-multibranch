@@ -1,0 +1,71 @@
+trigger:
+- main
+
+pool:
+  name: demo
+  demands:
+  - agent.name -equals demo
+
+variables:
+  imagePullSecret: 'bankapp-auth'
+
+stages:
+- stage: "Build"
+  displayName: Build
+  jobs:
+  - job: "Build"
+    displayName: Build
+    steps:
+    - task: Maven@4
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'mvn clean install'
+        publishJUnitResults: false
+        javaHomeOption: 'JDKVersion'
+        mavenVersionOption: 'Default'
+        mavenAuthenticateFeed: false
+        effectivePomSkip: false
+        sonarQubeRunAnalysis: false
+- stage: DockerImageBuild
+  displayName: DockerImageBuild
+  dependsOn: "Build"
+  jobs:
+  - job: DockerImageBuild
+    displayName: DockerImageBuild
+    steps:
+    - checkout: none
+    - task: CmdLine@2
+      inputs:
+        script: |
+          docker system prune -f --all
+          docker build -t blogappcontainer24registry.azurecr.io/samplewebapp:$(Build.BuildId) .
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker-Registry'
+        repository: 'samplewebapp'
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
+- stage: KubernetesDeployment
+  displayName: KubernetesDeployment
+  dependsOn: DockerImageBuild
+  jobs:
+  - deployment: KubernetesDeployment
+    displayName: KubernetesDeployment
+    environment: "dev"
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: none 
+          - task: HelmDeploy@1
+            inputs:
+              connectionType: 'Azure Resource Manager'
+              azureSubscription: 'Azure DevOps Service Connection'
+              azureResourceGroup: 'bankapp-rg'
+              kubernetesCluster: 'bankapp-cluster'
+              namespace: 'bankapp'
+              command: 'upgrade'
+              chartType: 'FilePath'
+              chartPath: '/home/demo/helm-repo-for-ArgoCD/folo'
+              releaseName: 'bankapp'
+              overrideValues: 'imagePullSecrets[0].name=bankapp-auth,image.repository=bankappcontainer24registry.azurecr.io/samplewebapp,image.tag=$(Build.BuildId),replicaCount=1,service.type=ClusterIP,service.port=80'
