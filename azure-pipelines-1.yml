@@ -24,7 +24,7 @@ stages:
   jobs:
   - deployment: MySQLDeployment
     displayName: MySQLDeployment
-    environment: "prod"
+    environment: "dev"
     strategy:
       runOnce:
         deploy:
