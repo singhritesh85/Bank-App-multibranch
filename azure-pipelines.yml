@@ -52,7 +52,7 @@ stages:
   jobs:
   - deployment: KubernetesDeployment
     displayName: KubernetesDeployment
-    environment: "prod"
+    environment: "dev"
     strategy:
       runOnce:
         deploy:
